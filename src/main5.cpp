@@ -13,6 +13,12 @@
 #include <MultiStepper.h>
 FlexCAN_T4<CAN3, RX_SIZE_256, TX_SIZE_16> can_intf;
 
+#define NUM_LEDS 60
+#define DATA_PIN 33
+
+
+CRGB leds[NUM_LEDS];
+
 
 //            For Autonomous Testing 
 
@@ -28,6 +34,13 @@ ODriveCAN odrv1(wrap_can_intf(can_intf), ODRV0_NODE_ID1);
 ODriveCAN odrv2(wrap_can_intf(can_intf), ODRV0_NODE_ID2);
 ODriveCAN odrv3(wrap_can_intf(can_intf), ODRV0_NODE_ID3);
 ODriveCAN *odrives[] = {&odrv0, &odrv1, &odrv2, &odrv3};
+
+
+void showgreen();
+void showred();
+void showblue();
+void fillStrip(uint32_t color);
+
 struct ODriveUserData
 {
     Heartbeat_msg_t last_heartbeat;
@@ -80,9 +93,32 @@ bool setupCan()
     can_intf.onReceive(onCanMessage);
     return true;
 }
+void fillStrip(uint32_t color)
+{
+    for (int i = 0; i < NUM_LEDS; i++)
+    {
+        leds[i] = color;
+    }
+    FastLED.show();
+}
+void showRed()
+{
+    // disco();
+    fillStrip(CRGB::Red);
+}
 
+void showGreen()
+{
+    fillStrip(CRGB::Green);
+}
+
+void showBlue()
+{
+    fillStrip(CRGB::Blue);
+}
 void setup()
 {
+
    
     Serial.begin(115200); // Data input
     // setupCan();
@@ -93,6 +129,11 @@ void setup()
     //     digitalWrite(ledPin, LOW);
     //     delay(200);
     // }
+
+    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.clear();
+    FastLED.show();
+
     odrv0.onFeedback(onFeedback, &odrv0_user_data);
     odrv0.onStatus(onHeartbeat, &odrv0_user_data);
     odrv1.onFeedback(onFeedback, &odrv1_user_data);
@@ -231,33 +272,31 @@ void processdata(String s)
     int x = tmp.toInt();
     int y = s.substring(commaIndex + 1, s.length() - 1).toInt();
 
-    float left_speed_norm = y + x;
-    float right_speed_norm = y - x;
+    // float left_speed_norm = y + x;
+    // float right_speed_norm = y - x;
 
-    float left_motor = 1500 + 500 * left_speed_norm;
-    float right_motor = 1500 + 500 * right_speed_norm;
-
-     left_motor = constrain(left_motor, 1000, 2000);
-    right_motor = constrain(right_motor, 1000, 2000);
+    
+    float left_motor = constrain(x, 1000, 2000);
+    float right_motor = constrain(y, 1000, 2000);
 
     // patch
-    if (left_motor > 1500)
-    {
-        left_motor = 1500 - abs(1500 - left_motor);
-    }
-    else
-    {
-        left_motor = 1500 + abs(1500 - left_motor);
-    }
+    // if (left_motor > 1500)
+    // {
+    //     left_motor = 1500 - abs(1500 - left_motor);
+    // }
+    // else
+    // {
+    //     left_motor = 1500 + abs(1500 - left_motor);
+    // }
 
-    if (right_motor > 1500)
-    {
-        right_motor = 1500 - abs(1500 - right_motor);
-    }
-    else
-    {
-        right_motor = 1500 + abs(1500 - right_motor);
-    }
+    // if (right_motor > 1500)
+    // {
+    //     right_motor = 1500 - abs(1500 - right_motor);
+    // }
+    // else
+    // {
+    //     right_motor = 1500 + abs(1500 - right_motor);
+    // }
 
     int pwmMotor0 = map(left_motor, 1000, 2000, -53, 53);
 
@@ -292,6 +331,27 @@ void processdata(String s)
     Serial.print("  M2=");
     Serial.println(pwmMotor1);
 }
+void process_led_data(String s)
+{
+ 
+ if(s[1]=='g')
+ {
+  showGreen();
+  Serial.println("Green");
+ }
+ else if(s[1]=='r')
+ {
+  showRed();
+  Serial.println("Red");
+ }
+ else 
+ {
+  showBlue();
+  Serial.println("Blue");
+ }
+ }
+
+
 
 void loop()
 {
@@ -353,6 +413,12 @@ void loop()
             processdata(s);
             
         }
+        else if(s.startsWith("#") && s.endsWith("#"))
+        {
+            digitalWrite(LED_BUILTIN, HIGH);
+            process_led_data(s);
+        }
+
     }
 }
 /*

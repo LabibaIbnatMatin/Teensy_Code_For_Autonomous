@@ -1130,6 +1130,17 @@ void emergencyStop()
 
 void loop()
 {
+        //disco();
+        // showRed();
+        // delay(100);
+        // showBlue();
+        // delay(100);
+        // showCyan();
+        // delay(100);
+        // FastLED.clear();
+        // FastLED.show();
+        // delay(100);
+
     if (colorGreen)
     {
         showBlue();
