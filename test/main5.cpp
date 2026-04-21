@@ -24,7 +24,7 @@ CRGB leds[NUM_LEDS];
 
 const int ledPin = LED_BUILTIN;
 
-#define CAN_BAUDRATE 1000000
+#define CAN_BAUDRATE 250000
 #define ODRV0_NODE_ID0 0
 #define ODRV0_NODE_ID1 1
 #define ODRV0_NODE_ID2 2
@@ -300,12 +300,16 @@ void processdata(String s)
 
     int pwmMotor0 = map(left_motor, 1000, 2000, -53, 53);
 
+    
+    
+    int pwmMotor1 = map(right_motor, 1000, 2000, -53, 53);
+
     if (odrv1_user_data.available)
     {
-        odrv1.setVelocity(pwmMotor0);
+        odrv1.setVelocity(-1*pwmMotor1);
     }
 
-    int pwmMotor1 = map(right_motor, 1000, 2000, -53, 53);
+
     if (odrv3_user_data.available)
     {
         odrv3.setVelocity(pwmMotor0);
@@ -313,12 +317,12 @@ void processdata(String s)
 
     if (odrv2_user_data.available)
     {
-        odrv2.setVelocity(-1 * pwmMotor1);
+        odrv2.setVelocity(pwmMotor0);
     }
 
     if (odrv0_user_data.available)
     {
-        odrv0.setVelocity(-1 * pwmMotor1);
+        odrv0.setVelocity(-1*pwmMotor1);
     }
 
     
